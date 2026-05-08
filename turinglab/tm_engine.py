@@ -37,18 +37,32 @@ class Tape:
         """Writes a symbol to the given head position."""
         self._tape[position] = symbol
 
-    def to_string(self) -> str:
+    def get_tape_string(self, head_position: Optional[int] = None) -> str:
         """
-        Returns a simplified string representation of the tape for the final state.
-        It strips bounding blank symbols unless the tape is completely empty.
+        Returns string representation of tape. If head_position is provided, 
+        formats with [head] for verbose output.
+        Determines bounds based on written symbols and head_position.
         """
-        if not self._tape:
+        keys = set(self._tape.keys())
+        if head_position is not None:
+            keys.add(head_position)
+            
+        if not keys:
+            if head_position is not None:
+                return f"[{self.blank_symbol}]"
             return self.blank_symbol
             
-        min_idx = min(self._tape.keys())
-        max_idx = max(self._tape.keys())
+        min_idx = min(keys)
+        max_idx = max(keys)
         
-        chars = [self.read(i) for i in range(min_idx, max_idx + 1)]
+        chars = []
+        for i in range(min_idx, max_idx + 1):
+            char = self.read(i)
+            if i == head_position:
+                chars.append(f"[{char}]")
+            else:
+                chars.append(char)
+                
         return "".join(chars)
 
 class SingleTapeTM:
@@ -84,20 +98,66 @@ class SingleTapeTM:
         """Loads a Turing Machine configuration from a YAML file."""
         with open(filepath, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
-        
-        # We will add validation logic here in the next step.
+            
+        required_keys = ["states", "input_alphabet", "tape_alphabet", "blank", "start_state", "transitions"]
+        for key in required_keys:
+            if key not in config:
+                raise ValueError(f"Invalid YAML: Missing required key '{key}'")
+                
         return cls(config)
 
     def run(self, input_string: str, max_steps: int = 1000, verbose: bool = False) -> RunResult:
-        """
-        Runs the Turing Machine on the given input string.
-        (Implementation details will be added in the next step)
-        """
-        # Placeholder for RunResult to satisfy the current API skeleton.
-        return RunResult(
-            accepted=False,
-            reason="not_implemented",
-            final_tape=input_string,
-            steps=0,
-            history=[]
-        )
+        """Runs the Turing Machine on the given input string."""
+        tape = Tape(input_string, self.blank)
+        current_state = self.start_state
+        head_position = 0
+        history: List[StepConfig] = []
+        steps = 0
+        
+        while steps <= max_steps:
+            # Record current configuration
+            current_tape_str_clean = tape.get_tape_string()
+            current_tape_str_with_head = tape.get_tape_string(head_position)
+            
+            history.append(StepConfig(
+                state=current_state, 
+                tape=current_tape_str_clean, 
+                head_position=head_position
+            ))
+            
+            # Check for accept/reject state before reading transition
+            if current_state in self.accept_states:
+                if verbose:
+                    print(f"Adım {steps} | Durum: {current_state} | Şerit: {current_tape_str_with_head} | Hareket: -")
+                return RunResult(accepted=True, reason="accept", final_tape=current_tape_str_clean, steps=steps, history=history)
+            
+            if current_state in self.reject_states:
+                if verbose:
+                    print(f"Adım {steps} | Durum: {current_state} | Şerit: {current_tape_str_with_head} | Hareket: -")
+                return RunResult(accepted=False, reason="reject", final_tape=current_tape_str_clean, steps=steps, history=history)
+                
+            read_symbol = tape.read(head_position)
+            transition = self.transitions.get((current_state, read_symbol))
+            
+            if not transition:
+                if verbose:
+                    print(f"Adım {steps} | Durum: {current_state} | Şerit: {current_tape_str_with_head} | Hareket: -")
+                return RunResult(accepted=False, reason="no_transition", final_tape=current_tape_str_clean, steps=steps, history=history)
+                
+            next_state, write_symbol, move_dir = transition
+            
+            if verbose:
+                print(f"Adım {steps} | Durum: {current_state} | Şerit: {current_tape_str_with_head} | Hareket: {move_dir}")
+                
+            # Apply transition
+            tape.write(head_position, write_symbol)
+            current_state = next_state
+            
+            if move_dir == "R":
+                head_position += 1
+            elif move_dir == "L":
+                head_position -= 1
+                
+            steps += 1
+            
+        return RunResult(accepted=False, reason="timeout", final_tape=tape.get_tape_string(), steps=max_steps, history=history)
