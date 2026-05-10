@@ -1,0 +1,17 @@
+name: "even_a"
+description: "Çift sayıda 'a' içeren stringleri kabul eder."
+states: [q_even, q_odd, q_accept, q_reject]
+input_alphabet: ["a", "b"]
+tape_alphabet: ["a", "b", "B"]
+blank: "B"
+start_state: q_even
+accept_states: [q_accept]
+reject_states: [q_reject]
+transitions:
+  - {state: q_even, read: "a", next: q_odd, write: "a", move: R}
+  - {state: q_even, read: "b", next: q_even, write: "b", move: R}
+  - {state: q_even, read: "B", next: q_accept, write: "B", move: R}
+  
+  - {state: q_odd, read: "a", next: q_even, write: "a", move: R}
+  - {state: q_odd, read: "b", next: q_odd, write: "b", move: R}
+  - {state: q_odd, read: "B", next: q_reject, write: "B", move: R}
