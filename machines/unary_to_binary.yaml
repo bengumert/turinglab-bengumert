@@ -1,0 +1,71 @@
+name: "unary_to_binary"
+description: "Unary sayıyı binary formata çevirir. (Örn: 111 -> 11)"
+states: [
+  q_start, q_check_empty_start, q_return_x, q_find_bin,
+  q_gap_is_1,
+  q_shift_0, q_shift_1, q_increment_start,
+  q_go_to_end, q_increment,
+  q_return_bin, q_cleanup, q_accept
+]
+input_alphabet: ["1"]
+tape_alphabet: ["0", "1", "B", "X"]
+blank: "B"
+start_state: q_start
+accept_states: [q_accept]
+reject_states: []
+transitions:
+  # Initial setup: go to rightmost 1
+  - {state: q_start, read: "1", next: q_start, write: "1", move: R}
+  - {state: q_start, read: "B", next: q_check_empty_start, write: "B", move: L}
+
+  - {state: q_check_empty_start, read: "B", next: q_accept, write: "B", move: R}
+  - {state: q_check_empty_start, read: "1", next: q_find_bin, write: "X", move: R}
+
+  # Return to rightmost 1
+  - {state: q_return_x, read: "X", next: q_return_x, write: "X", move: L}
+  - {state: q_return_x, read: "1", next: q_find_bin, write: "X", move: R}
+  - {state: q_return_x, read: "B", next: q_cleanup, write: "B", move: R}
+
+  # Skip X's to find the gap
+  - {state: q_find_bin, read: "X", next: q_find_bin, write: "X", move: R}
+  - {state: q_find_bin, read: "B", next: q_gap_is_1, write: "B", move: R}
+  - {state: q_find_bin, read: "0", next: q_shift_0, write: "B", move: R}
+  - {state: q_find_bin, read: "1", next: q_shift_1, write: "B", move: R}
+
+  # Gap is 1, check if binary is empty
+  - {state: q_gap_is_1, read: "B", next: q_return_bin, write: "1", move: L}
+  - {state: q_gap_is_1, read: "0", next: q_go_to_end, write: "0", move: R}
+  - {state: q_gap_is_1, read: "1", next: q_go_to_end, write: "1", move: R}
+
+  # Move to the end of binary string to increment
+  - {state: q_go_to_end, read: "0", next: q_go_to_end, write: "0", move: R}
+  - {state: q_go_to_end, read: "1", next: q_go_to_end, write: "1", move: R}
+  - {state: q_go_to_end, read: "B", next: q_increment, write: "B", move: L}
+
+  # Shift binary string 1 cell to the right
+  - {state: q_shift_0, read: "0", next: q_shift_0, write: "0", move: R}
+  - {state: q_shift_0, read: "1", next: q_shift_1, write: "0", move: R}
+  - {state: q_shift_0, read: "B", next: q_increment_start, write: "0", move: R}
+
+  - {state: q_shift_1, read: "0", next: q_shift_0, write: "1", move: R}
+  - {state: q_shift_1, read: "1", next: q_shift_1, write: "1", move: R}
+  - {state: q_shift_1, read: "B", next: q_increment_start, write: "1", move: R}
+
+  - {state: q_increment_start, read: "B", next: q_increment, write: "B", move: L}
+
+  # Increment binary
+  - {state: q_increment, read: "0", next: q_return_bin, write: "1", move: L}
+  - {state: q_increment, read: "1", next: q_increment, write: "0", move: L}
+  - {state: q_increment, read: "B", next: q_return_bin, write: "1", move: L}
+
+  # Return back
+  - {state: q_return_bin, read: "0", next: q_return_bin, write: "0", move: L}
+  - {state: q_return_bin, read: "1", next: q_return_bin, write: "1", move: L}
+  - {state: q_return_bin, read: "B", next: q_return_x, write: "B", move: L}
+  - {state: q_return_bin, read: "X", next: q_return_x, write: "X", move: L}
+
+  # Clean up X's
+  - {state: q_cleanup, read: "X", next: q_cleanup, write: "B", move: R}
+  - {state: q_cleanup, read: "B", next: q_accept, write: "B", move: R}
+  - {state: q_cleanup, read: "0", next: q_accept, write: "0", move: R}
+  - {state: q_cleanup, read: "1", next: q_accept, write: "1", move: R}
