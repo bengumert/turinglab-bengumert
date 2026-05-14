@@ -16,3 +16,24 @@ Girdi uzunluğu n olsun. Her '1' sembolü için kafa tüm diziyi bir kez sağa v
 
 **5. Hata Ayıklama Hikayesi:**  
 Geliştirme sırasında karşılaştığım en büyük bug, ikili sayının sola doğru büyümesi (örneğin `11` -> `100` olurken) sonucu unary diziden kalan `X`'leri üzerine yazarak yok etmesiydi. Şeritteki boşluğun 0'a indiği anları yakalayamadığım için "1111" girdisinde makine "111" çıktısı üretiyordu. Bunu çözmek için `q_check_gap` ve `q_shift` alt yordamlarını yazdım: Kafa, ikili sayıya ulaşmadan hemen önce `B` yerine doğrudan `1` okursa, çarpışma olacağını anlar ve tüm ikili sayıyı bir hücre sağa kaydırarak kendisine yeni bir `B` boşluğu açar. Bu sayede makine O(n) uzunluktaki girdilerde bile kusursuz çalışır hale geldi.
+
+
+## TM-2: Binary Compare (binary_compare.yaml)
+
+**1. Strateji:**  
+Makine üç ana aşamadan oluşur:
+- **Aşama 0 (Leading Zeros):** Sayıların başındaki anlamsız '0'lar (leading zeros) tespit edilip özel 'L' sembolüyle maskelenir. Bu sayede '0010' ile '10' aynı uzunlukta kabul edilir.
+- **Aşama 1 (Length Compare):** İki sayının uzunlukları (L ile maskelenmemiş bit sayıları) karşılıklı olarak işaretlenerek (A_0, B_1 vb.) karşılaştırılır. A daha uzunsa anında kabul (A > B), B daha uzunsa anında ret durumuna geçilir.
+- **Aşama 2 (Value Compare):** Eğer uzunluklar eşitse, en soldaki en anlamlı bitten (MSB) başlanarak işaretler teker teker kaldırılır ve bitler kıyaslanır. İlk farklılıkta (1 vs 0) karar verilir.
+
+**2. Durum Sayısı:**  
+Yaklaşık 21 durum kullanıldı. Problemin doğası gereği üç farklı faz var (önden sıfır atma, uzunluk sayma, bit bit değer kıyaslama). Bu aşamaların her biri sağa git, sola dön, karakterleri hatırla (remember_0, remember_1) gibi durumları içerdiği için durum sayısı artmıştır.
+
+**3. Şerit Alfabesi Seçimi:**  
+Girdi alfabesine ek olarak maskelenmiş bitler için 'L' (Leading Zero) ve geçildiğini hatırlamak için 'A_0', 'A_1', 'B_0', 'B_1' sembolleri kullanıldı. Bu semboller fazlar arasında sayının orijinal değerini kaybetmeden üzerinden geçildiğini anlamak için hayati önem taşır.
+
+**4. Karmaşıklık:**  
+Her bir bit için tüm şerit baştan sona taranır. Bu nedenle algoritmanın zaman karmaşıklığı O(N^2) düzeyindedir (N = şerit uzunluğu). Tek şeritli bir TM'de bu işlem mecburi bir zigzag (ping-pong) mekanizması gerektirdiği için O(N^2) alt sınır kabul edilebilir.
+
+**5. Hata Ayıklama Hikayesi:**  
+Geliştirme sırasında ilk testlerde makinenin '1101#1011' testinde A tarafındaki işlenmiş (0 ve 1) sayıları B'nin sayıları sanarak yanlış yere B_1 yazması sorunuyla karşılaştım. '# ' sembolünü net bir 'sınır kapısı' (boundary) olarak kullanmam gerektiğini anladım ve 'q_phase_1_go_B' durumunu ikiye böldüm: Önce A'nın bitlerini atlayıp '#' karakterine ulaşan, ardından '#' karakterini geçtikten sonra B'nin bitlerini arayan iki durum tasarlandı.

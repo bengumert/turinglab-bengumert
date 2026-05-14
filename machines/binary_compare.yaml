@@ -1,0 +1,144 @@
+name: "binary_compare"
+description: "İki ikili sayıyı karşılaştırır. A > B ise kabul, eşit veya küçükse ret. (Örn: 1011#1100)"
+states: [
+  q_strip_A, q_lookahead_A, q_restore_A, q_skip_A_to_hash,
+  q_strip_B, q_lookahead_B, q_restore_B, q_skip_B_to_end,
+  q_rewind_to_start,
+  q_phase_1_A, q_phase_1_go_B, q_phase_1_go_B_after_hash, q_phase_1_go_A, q_phase_1_go_A_after_hash, q_phase_1_check_B_empty,
+  q_rewind_for_phase_2,
+  q_phase_2_A, q_phase_2_remember_0, q_phase_2_remember_1,
+  q_phase_2_go_A, q_phase_2_go_A_after_hash,
+  q_accept, q_reject
+]
+input_alphabet: ["0", "1", "#"]
+tape_alphabet: ["0", "1", "B", "#", "L", "A_0", "A_1", "B_0", "B_1"]
+blank: "B"
+start_state: q_strip_A
+accept_states: [q_accept]
+reject_states: [q_reject]
+transitions:
+  # --- PHASE 0: STRIP LEADING ZEROS ---
+  - {state: q_strip_A, read: "L", next: q_strip_A, write: "L", move: R}
+  - {state: q_strip_A, read: "0", next: q_lookahead_A, write: "L", move: R}
+  - {state: q_strip_A, read: "1", next: q_skip_A_to_hash, write: "1", move: R}
+  - {state: q_strip_A, read: "#", next: q_strip_B, write: "#", move: R}
+
+  - {state: q_lookahead_A, read: "0", next: q_strip_A, write: "0", move: L}
+  - {state: q_lookahead_A, read: "1", next: q_strip_A, write: "1", move: L}
+  - {state: q_lookahead_A, read: "#", next: q_restore_A, write: "#", move: L}
+
+  - {state: q_restore_A, read: "L", next: q_skip_A_to_hash, write: "0", move: R}
+
+  - {state: q_skip_A_to_hash, read: "0", next: q_skip_A_to_hash, write: "0", move: R}
+  - {state: q_skip_A_to_hash, read: "1", next: q_skip_A_to_hash, write: "1", move: R}
+  - {state: q_skip_A_to_hash, read: "#", next: q_strip_B, write: "#", move: R}
+
+  - {state: q_strip_B, read: "L", next: q_strip_B, write: "L", move: R}
+  - {state: q_strip_B, read: "0", next: q_lookahead_B, write: "L", move: R}
+  - {state: q_strip_B, read: "1", next: q_skip_B_to_end, write: "1", move: R}
+  - {state: q_strip_B, read: "B", next: q_rewind_to_start, write: "B", move: L}
+
+  - {state: q_lookahead_B, read: "0", next: q_strip_B, write: "0", move: L}
+  - {state: q_lookahead_B, read: "1", next: q_strip_B, write: "1", move: L}
+  - {state: q_lookahead_B, read: "B", next: q_restore_B, write: "B", move: L}
+
+  - {state: q_restore_B, read: "L", next: q_skip_B_to_end, write: "0", move: R}
+
+  - {state: q_skip_B_to_end, read: "0", next: q_skip_B_to_end, write: "0", move: R}
+  - {state: q_skip_B_to_end, read: "1", next: q_skip_B_to_end, write: "1", move: R}
+  - {state: q_skip_B_to_end, read: "B", next: q_rewind_to_start, write: "B", move: L}
+
+  - {state: q_rewind_to_start, read: "0", next: q_rewind_to_start, write: "0", move: L}
+  - {state: q_rewind_to_start, read: "1", next: q_rewind_to_start, write: "1", move: L}
+  - {state: q_rewind_to_start, read: "#", next: q_rewind_to_start, write: "#", move: L}
+  - {state: q_rewind_to_start, read: "L", next: q_rewind_to_start, write: "L", move: L}
+  - {state: q_rewind_to_start, read: "B", next: q_phase_1_A, write: "B", move: R}
+
+  # --- PHASE 1: LENGTH COMPARE ---
+  - {state: q_phase_1_A, read: "L", next: q_phase_1_A, write: "L", move: R}
+  - {state: q_phase_1_A, read: "A_0", next: q_phase_1_A, write: "A_0", move: R}
+  - {state: q_phase_1_A, read: "A_1", next: q_phase_1_A, write: "A_1", move: R}
+  - {state: q_phase_1_A, read: "0", next: q_phase_1_go_B, write: "A_0", move: R}
+  - {state: q_phase_1_A, read: "1", next: q_phase_1_go_B, write: "A_1", move: R}
+  - {state: q_phase_1_A, read: "#", next: q_phase_1_check_B_empty, write: "#", move: R}
+
+  - {state: q_phase_1_go_B, read: "0", next: q_phase_1_go_B, write: "0", move: R}
+  - {state: q_phase_1_go_B, read: "1", next: q_phase_1_go_B, write: "1", move: R}
+  - {state: q_phase_1_go_B, read: "#", next: q_phase_1_go_B_after_hash, write: "#", move: R}
+
+  - {state: q_phase_1_go_B_after_hash, read: "L", next: q_phase_1_go_B_after_hash, write: "L", move: R}
+  - {state: q_phase_1_go_B_after_hash, read: "B_0", next: q_phase_1_go_B_after_hash, write: "B_0", move: R}
+  - {state: q_phase_1_go_B_after_hash, read: "B_1", next: q_phase_1_go_B_after_hash, write: "B_1", move: R}
+  - {state: q_phase_1_go_B_after_hash, read: "0", next: q_phase_1_go_A, write: "B_0", move: L}
+  - {state: q_phase_1_go_B_after_hash, read: "1", next: q_phase_1_go_A, write: "B_1", move: L}
+  - {state: q_phase_1_go_B_after_hash, read: "B", next: q_accept, write: "B", move: L} # A is longer
+
+  - {state: q_phase_1_go_A, read: "B_0", next: q_phase_1_go_A, write: "B_0", move: L}
+  - {state: q_phase_1_go_A, read: "B_1", next: q_phase_1_go_A, write: "B_1", move: L}
+  - {state: q_phase_1_go_A, read: "L", next: q_phase_1_go_A, write: "L", move: L}
+  - {state: q_phase_1_go_A, read: "#", next: q_phase_1_go_A_after_hash, write: "#", move: L}
+
+  - {state: q_phase_1_go_A_after_hash, read: "0", next: q_phase_1_go_A_after_hash, write: "0", move: L}
+  - {state: q_phase_1_go_A_after_hash, read: "1", next: q_phase_1_go_A_after_hash, write: "1", move: L}
+  - {state: q_phase_1_go_A_after_hash, read: "A_0", next: q_phase_1_A, write: "A_0", move: R}
+  - {state: q_phase_1_go_A_after_hash, read: "A_1", next: q_phase_1_A, write: "A_1", move: R}
+  - {state: q_phase_1_go_A_after_hash, read: "L", next: q_phase_1_A, write: "L", move: R}
+  - {state: q_phase_1_go_A_after_hash, read: "B", next: q_phase_1_A, write: "B", move: R}
+
+  - {state: q_phase_1_check_B_empty, read: "L", next: q_phase_1_check_B_empty, write: "L", move: R}
+  - {state: q_phase_1_check_B_empty, read: "B_0", next: q_phase_1_check_B_empty, write: "B_0", move: R}
+  - {state: q_phase_1_check_B_empty, read: "B_1", next: q_phase_1_check_B_empty, write: "B_1", move: R}
+  - {state: q_phase_1_check_B_empty, read: "0", next: q_reject, write: "0", move: L} # B is longer
+  - {state: q_phase_1_check_B_empty, read: "1", next: q_reject, write: "1", move: L} # B is longer
+  - {state: q_phase_1_check_B_empty, read: "B", next: q_rewind_for_phase_2, write: "B", move: L}
+
+  # --- REWIND ---
+  - {state: q_rewind_for_phase_2, read: "0", next: q_rewind_for_phase_2, write: "0", move: L}
+  - {state: q_rewind_for_phase_2, read: "1", next: q_rewind_for_phase_2, write: "1", move: L}
+  - {state: q_rewind_for_phase_2, read: "A_0", next: q_rewind_for_phase_2, write: "A_0", move: L}
+  - {state: q_rewind_for_phase_2, read: "A_1", next: q_rewind_for_phase_2, write: "A_1", move: L}
+  - {state: q_rewind_for_phase_2, read: "B_0", next: q_rewind_for_phase_2, write: "B_0", move: L}
+  - {state: q_rewind_for_phase_2, read: "B_1", next: q_rewind_for_phase_2, write: "B_1", move: L}
+  - {state: q_rewind_for_phase_2, read: "L", next: q_rewind_for_phase_2, write: "L", move: L}
+  - {state: q_rewind_for_phase_2, read: "#", next: q_rewind_for_phase_2, write: "#", move: L}
+  - {state: q_rewind_for_phase_2, read: "B", next: q_phase_2_A, write: "B", move: R}
+
+  # --- PHASE 2: VALUE COMPARE ---
+  - {state: q_phase_2_A, read: "L", next: q_phase_2_A, write: "L", move: R}
+  - {state: q_phase_2_A, read: "0", next: q_phase_2_A, write: "0", move: R}
+  - {state: q_phase_2_A, read: "1", next: q_phase_2_A, write: "1", move: R}
+  - {state: q_phase_2_A, read: "A_0", next: q_phase_2_remember_0, write: "0", move: R}
+  - {state: q_phase_2_A, read: "A_1", next: q_phase_2_remember_1, write: "1", move: R}
+  - {state: q_phase_2_A, read: "#", next: q_reject, write: "#", move: L} # Equal strings!
+
+  - {state: q_phase_2_remember_0, read: "A_0", next: q_phase_2_remember_0, write: "A_0", move: R}
+  - {state: q_phase_2_remember_0, read: "A_1", next: q_phase_2_remember_0, write: "A_1", move: R}
+  - {state: q_phase_2_remember_0, read: "#", next: q_phase_2_remember_0, write: "#", move: R}
+  - {state: q_phase_2_remember_0, read: "L", next: q_phase_2_remember_0, write: "L", move: R}
+  - {state: q_phase_2_remember_0, read: "0", next: q_phase_2_remember_0, write: "0", move: R}
+  - {state: q_phase_2_remember_0, read: "1", next: q_phase_2_remember_0, write: "1", move: R}
+  - {state: q_phase_2_remember_0, read: "B_0", next: q_phase_2_go_A, write: "0", move: L} # Equal bit
+  - {state: q_phase_2_remember_0, read: "B_1", next: q_reject, write: "1", move: L} # A < B
+
+  - {state: q_phase_2_remember_1, read: "A_0", next: q_phase_2_remember_1, write: "A_0", move: R}
+  - {state: q_phase_2_remember_1, read: "A_1", next: q_phase_2_remember_1, write: "A_1", move: R}
+  - {state: q_phase_2_remember_1, read: "#", next: q_phase_2_remember_1, write: "#", move: R}
+  - {state: q_phase_2_remember_1, read: "L", next: q_phase_2_remember_1, write: "L", move: R}
+  - {state: q_phase_2_remember_1, read: "0", next: q_phase_2_remember_1, write: "0", move: R}
+  - {state: q_phase_2_remember_1, read: "1", next: q_phase_2_remember_1, write: "1", move: R}
+  - {state: q_phase_2_remember_1, read: "B_0", next: q_accept, write: "0", move: L} # A > B
+  - {state: q_phase_2_remember_1, read: "B_1", next: q_phase_2_go_A, write: "1", move: L} # Equal bit
+
+  - {state: q_phase_2_go_A, read: "0", next: q_phase_2_go_A, write: "0", move: L}
+  - {state: q_phase_2_go_A, read: "1", next: q_phase_2_go_A, write: "1", move: L}
+  - {state: q_phase_2_go_A, read: "B_0", next: q_phase_2_go_A, write: "B_0", move: L}
+  - {state: q_phase_2_go_A, read: "B_1", next: q_phase_2_go_A, write: "B_1", move: L}
+  - {state: q_phase_2_go_A, read: "L", next: q_phase_2_go_A, write: "L", move: L}
+  - {state: q_phase_2_go_A, read: "#", next: q_phase_2_go_A_after_hash, write: "#", move: L}
+
+  - {state: q_phase_2_go_A_after_hash, read: "A_0", next: q_phase_2_go_A_after_hash, write: "A_0", move: L}
+  - {state: q_phase_2_go_A_after_hash, read: "A_1", next: q_phase_2_go_A_after_hash, write: "A_1", move: L}
+  - {state: q_phase_2_go_A_after_hash, read: "0", next: q_phase_2_A, write: "0", move: R}
+  - {state: q_phase_2_go_A_after_hash, read: "1", next: q_phase_2_A, write: "1", move: R}
+  - {state: q_phase_2_go_A_after_hash, read: "L", next: q_phase_2_A, write: "L", move: R}
+  - {state: q_phase_2_go_A_after_hash, read: "B", next: q_phase_2_A, write: "B", move: R}
