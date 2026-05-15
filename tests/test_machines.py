@@ -79,3 +79,30 @@ def test_binary_compare():
     # 10. 1 vs 0
     res = tm.run("1#0")
     assert res.accepted is True
+
+def test_string_copy():
+    tm = SingleTapeTM.from_yaml("machines/string_copy.yaml")
+    
+    # 1. Standard test
+    res = tm.run("aba")
+    assert res.accepted is True
+    assert res.final_tape.strip("B") == "aba#aba"
+    
+    # 2. Single char
+    res = tm.run("a")
+    assert res.accepted is True
+    assert res.final_tape.strip("B") == "a#a"
+    
+    res = tm.run("b")
+    assert res.accepted is True
+    assert res.final_tape.strip("B") == "b#b"
+    
+    # 3. Longer string
+    res = tm.run("bbabaa")
+    assert res.accepted is True
+    assert res.final_tape.strip("B") == "bbabaa#bbabaa"
+    
+    # 4. Empty string
+    res = tm.run("")
+    assert res.accepted is True
+    assert res.final_tape.strip("B") == "#"

@@ -1,0 +1,49 @@
+name: "string_copy"
+description: "Verilen w stringini w#w formuna dönüştürür. (Örn: aba -> aba#aba)"
+states: [
+  q_start, q_rewind_to_start, 
+  q_copy, q_go_end_a, q_go_end_b, q_return, 
+  q_cleanup, q_accept
+]
+input_alphabet: ["a", "b"]
+tape_alphabet: ["a", "b", "B", "#", "X", "Y"]
+blank: "B"
+start_state: q_start
+accept_states: [q_accept]
+reject_states: []
+transitions:
+  # --- Phase 1: Append '#' at the end of the original string ---
+  - {state: q_start, read: "a", next: q_start, write: "a", move: R}
+  - {state: q_start, read: "b", next: q_start, write: "b", move: R}
+  - {state: q_start, read: "B", next: q_rewind_to_start, write: "#", move: L}
+
+  - {state: q_rewind_to_start, read: "a", next: q_rewind_to_start, write: "a", move: L}
+  - {state: q_rewind_to_start, read: "b", next: q_rewind_to_start, write: "b", move: L}
+  - {state: q_rewind_to_start, read: "B", next: q_copy, write: "B", move: R}
+
+  # --- Phase 2: Copy characters one by one ---
+  - {state: q_copy, read: "a", next: q_go_end_a, write: "X", move: R}
+  - {state: q_copy, read: "b", next: q_go_end_b, write: "Y", move: R}
+  - {state: q_copy, read: "#", next: q_cleanup, write: "#", move: L} # Finished copying!
+
+  - {state: q_go_end_a, read: "a", next: q_go_end_a, write: "a", move: R}
+  - {state: q_go_end_a, read: "b", next: q_go_end_a, write: "b", move: R}
+  - {state: q_go_end_a, read: "#", next: q_go_end_a, write: "#", move: R}
+  - {state: q_go_end_a, read: "B", next: q_return, write: "a", move: L}
+
+  - {state: q_go_end_b, read: "a", next: q_go_end_b, write: "a", move: R}
+  - {state: q_go_end_b, read: "b", next: q_go_end_b, write: "b", move: R}
+  - {state: q_go_end_b, read: "#", next: q_go_end_b, write: "#", move: R}
+  - {state: q_go_end_b, read: "B", next: q_return, write: "b", move: L}
+
+  - {state: q_return, read: "a", next: q_return, write: "a", move: L}
+  - {state: q_return, read: "b", next: q_return, write: "b", move: L}
+  - {state: q_return, read: "#", next: q_return, write: "#", move: L}
+  - {state: q_return, read: "X", next: q_copy, write: "X", move: R}
+  - {state: q_return, read: "Y", next: q_copy, write: "Y", move: R}
+  - {state: q_return, read: "B", next: q_copy, write: "B", move: R} # Just in case it was the first character and no X/Y exists yet
+
+  # --- Phase 3: Restore original string ---
+  - {state: q_cleanup, read: "X", next: q_cleanup, write: "a", move: L}
+  - {state: q_cleanup, read: "Y", next: q_cleanup, write: "b", move: L}
+  - {state: q_cleanup, read: "B", next: q_accept, write: "B", move: R}

@@ -37,3 +37,21 @@ Her bir bit için tüm şerit baştan sona taranır. Bu nedenle algoritmanın za
 
 **5. Hata Ayıklama Hikayesi:**  
 Geliştirme sırasında ilk testlerde makinenin '1101#1011' testinde A tarafındaki işlenmiş (0 ve 1) sayıları B'nin sayıları sanarak yanlış yere B_1 yazması sorunuyla karşılaştım. '# ' sembolünü net bir 'sınır kapısı' (boundary) olarak kullanmam gerektiğini anladım ve 'q_phase_1_go_B' durumunu ikiye böldüm: Önce A'nın bitlerini atlayıp '#' karakterine ulaşan, ardından '#' karakterini geçtikten sonra B'nin bitlerini arayan iki durum tasarlandı.
+
+
+## TM-3: String Copy (string_copy.yaml)
+
+**1. Strateji:**  
+Makine, kopyalama işlemine başlamadan önce orijinal stringin sonuna '#' ayıracını koyar. Ardından soldan sağa doğru her bir karakteri okur, okuduğu 'a' veya 'b' karakterini sırasıyla 'X' veya 'Y' olarak işaretler. Kafa, boş şeridin sonuna kadar sağa gidip ilgili karakteri yazar. Sonra tekrar sola dönerek orijinal string içindeki ilk işaretlenmemiş (X/Y olmayan) karaktere gelir. Bu ping-pong işlemi '#' sembolüne gelene kadar devam eder. Son aşamada makine sola doğru tarama yaparak tüm 'X' ve 'Y' işaretlerini tekrar 'a' ve 'b'ye dönüştürür (cleanup).
+
+**2. Durum Sayısı:**  
+8 durum kullanıldı. Problem son derece düzenli ve standart bir örüntüye sahip olduğundan, kopyalama (q_copy), sağa gitme (q_go_end_a, q_go_end_b), sola dönme (q_return) ve temizleme (q_cleanup) aşamaları yeterli oldu. 
+
+**3. Şerit Alfabesi Seçimi:**  
+Girdi alfabesi {a, b} ve ayıraç # haricinde kopyalanan karakterlerin takibi için {X, Y} kullanıldı.
+
+**4. Karmaşıklık:**  
+N uzunluğunda bir string için, her bir karakterin kopyalanması şeridin sonuna gidip dönmeyi gerektirir. Birinci karakter için yaklaşık 2 adım, ikinci karakter için 4 adım... N'inci karakter için 2N adım yol katedilir. Toplam zaman karmaşıklığı aritmetik dizinin toplamı gibi hesaplanır ve O(N^2) bulunur.
+
+**5. Hata Ayıklama Hikayesi:**  
+Bu makinenin tasarımı en sorunsuz geçen aşamalardan biriydi. Sadece boş string ("") girdisinde nasıl davranacağı kafa karıştırıcı olabilirdi; q_start durumunda şerit boşsa doğrudan sola '#' yazıp temizleme işlemine geçerek çıktının başarılı bir şekilde '#' olmasını sağladım.
