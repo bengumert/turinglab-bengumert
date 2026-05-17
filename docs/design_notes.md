@@ -55,3 +55,21 @@ N uzunluğunda bir string için, her bir karakterin kopyalanması şeridin sonun
 
 **5. Hata Ayıklama Hikayesi:**  
 Bu makinenin tasarımı en sorunsuz geçen aşamalardan biriydi. Sadece boş string ("") girdisinde nasıl davranacağı kafa karıştırıcı olabilirdi; q_start durumunda şerit boşsa doğrudan sola '#' yazıp temizleme işlemine geçerek çıktının başarılı bir şekilde '#' olmasını sağladım.
+
+
+## TM-4: Öğrenci Seçimi - Palindrome Checker (palindrome_checker.yaml)
+
+**1. Strateji:**  
+Makine, şeridin sol ucundaki karakteri okur, hafızasında tutar (bunun için iki farklı yola sapar: q_find_end_a veya q_find_end_b) ve sildiği yerin üzerine boşluk (B) yazar. Ardından şeridin sağ ucuna kadar gider. Uçtaki karakteri siler ve başta okuduğu karakterle aynı olup olmadığını kontrol eder. Aynıysa sola doğru başlangıca döner ve işlemi tekrarlar. Ortada hiç karakter kalmazsa (çift uzunluk) veya sadece bir karakter kalırsa (tek uzunluk) kabul (accept) durumuna geçer.
+
+**2. Durum Sayısı:**  
+8 durum kullanıldı. Sol ucu okuyup sağa gitme (2 yol), sağ ucu kontrol etme (2 yol), geri dönme ve kabul/ret durumları. Son derece optimize ve minimal bir durum kümesi.
+
+**3. Şerit Alfabesi Seçimi:**  
+Ekstra bir işaretleyici kullanılmadı. Girdi alfabesi {a, b} okunup onaylandıkça yerine doğrudan B (Blank) yazılarak şerit her iki uçtan yavaşça merkeze doğru tüketildi.
+
+**4. Karmaşıklık:**  
+N uzunluğundaki bir dizi için, her karakter eşleşmesi şeridin bir ucundan diğerine gitmeyi gerektirir. Bu da ilk seferde N adım, ikinci seferde N-2 adım vb. yol kat edilmesine sebep olur. O(N^2) zaman karmaşıklığında çalışır.
+
+**5. Hata Ayıklama Hikayesi:**  
+Tasarım esnasında karşılaşılabilecek en ince nokta tek harfli kelimelerde ve tek uzunluklu (ör: 'aba') palindromların ortasındaki harfin nasıl değerlendirileceğiydi. Sağ ucu kontrol ederken 'B' okunması durumunu özel olarak q_accept'e bağladım. Çünkü eğer sağ ucu ararken beklediğimiz harf yerine 'B' buluyorsak, o harf aslında tek kalan merkez harftir. Bu sayede makine tek ve çift uzunluklu palindromları ayırt etmeksizin kusursuz kabul edebildi.

@@ -106,3 +106,33 @@ def test_string_copy():
     res = tm.run("")
     assert res.accepted is True
     assert res.final_tape.strip("B") == "#"
+
+def test_palindrome_checker():
+    tm = SingleTapeTM.from_yaml("machines/palindrome_checker.yaml")
+    
+    # 1. Even palindrome
+    res = tm.run("abba")
+    assert res.accepted is True
+    
+    # 2. Odd palindrome
+    res = tm.run("ababa")
+    assert res.accepted is True
+    
+    # 3. Not palindrome
+    res = tm.run("abab")
+    assert res.accepted is False
+    
+    # 4. Single character
+    res = tm.run("a")
+    assert res.accepted is True
+    
+    res = tm.run("b")
+    assert res.accepted is True
+    
+    # 5. Empty string
+    res = tm.run("")
+    assert res.accepted is True
+    
+    # 6. Long palindrome
+    res = tm.run("bbabaaaababb")
+    assert res.accepted is True

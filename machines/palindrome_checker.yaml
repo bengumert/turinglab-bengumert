@@ -1,0 +1,45 @@
+name: "palindrome_checker"
+description: "Verilen a ve b'lerden oluşan stringin palindrom olup olmadığını kontrol eder. (Örn: abba -> kabul, abab -> ret)"
+states: [
+  q_start, 
+  q_find_end_a, q_check_a, 
+  q_find_end_b, q_check_b, 
+  q_return, 
+  q_accept, q_reject
+]
+input_alphabet: ["a", "b"]
+tape_alphabet: ["a", "b", "B"]
+blank: "B"
+start_state: q_start
+accept_states: [q_accept]
+reject_states: [q_reject]
+transitions:
+  # Oku ve sil (sol uç)
+  - {state: q_start, read: "a", next: q_find_end_a, write: "B", move: R}
+  - {state: q_start, read: "b", next: q_find_end_b, write: "B", move: R}
+  - {state: q_start, read: "B", next: q_accept, write: "B", move: R} # Tamamı silindi (çift) veya baştan boş
+
+  # Sağ uca git (A bekleyen)
+  - {state: q_find_end_a, read: "a", next: q_find_end_a, write: "a", move: R}
+  - {state: q_find_end_a, read: "b", next: q_find_end_a, write: "b", move: R}
+  - {state: q_find_end_a, read: "B", next: q_check_a, write: "B", move: L}
+
+  # Sağ ucu kontrol et (A bekleyen)
+  - {state: q_check_a, read: "a", next: q_return, write: "B", move: L}
+  - {state: q_check_a, read: "b", next: q_reject, write: "b", move: L}
+  - {state: q_check_a, read: "B", next: q_accept, write: "B", move: R} # Tek uzunluklu ortadaki harfe denk geldi
+
+  # Sağ uca git (B bekleyen)
+  - {state: q_find_end_b, read: "a", next: q_find_end_b, write: "a", move: R}
+  - {state: q_find_end_b, read: "b", next: q_find_end_b, write: "b", move: R}
+  - {state: q_find_end_b, read: "B", next: q_check_b, write: "B", move: L}
+
+  # Sağ ucu kontrol et (B bekleyen)
+  - {state: q_check_b, read: "b", next: q_return, write: "B", move: L}
+  - {state: q_check_b, read: "a", next: q_reject, write: "a", move: L}
+  - {state: q_check_b, read: "B", next: q_accept, write: "B", move: R} # Tek uzunluklu ortadaki harfe denk geldi
+
+  # Sol uca geri dön
+  - {state: q_return, read: "a", next: q_return, write: "a", move: L}
+  - {state: q_return, read: "b", next: q_return, write: "b", move: L}
+  - {state: q_return, read: "B", next: q_start, write: "B", move: R}
