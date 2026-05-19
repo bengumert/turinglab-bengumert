@@ -1,0 +1,14 @@
+name: "single_has_01"
+description: "Deterministik olarak içinde '01' alt-dizgisi geçen stringleri kabul eder."
+states: [q_start, q_saw_0, q_accept]
+input_alphabet: ["0", "1"]
+tape_alphabet: ["0", "1", "B"]
+blank: "B"
+start_state: q_start
+accept_states: [q_accept]
+reject_states: []
+transitions:
+  - {state: q_start, read: "1", next: q_start, write: "1", move: R}
+  - {state: q_start, read: "0", next: q_saw_0, write: "0", move: R}
+  - {state: q_saw_0, read: "0", next: q_saw_0, write: "0", move: R}
+  - {state: q_saw_0, read: "1", next: q_accept, write: "1", move: R}
