@@ -34,7 +34,7 @@ transitions:
   - {state: q_add_carry0, read: ["B", "0", "B"], next: q_add_carry0, write: ["0", "0", "B"], move: ["L", "L", "S"]}
   - {state: q_add_carry0, read: ["B", "1", "B"], next: q_add_carry0, write: ["1", "1", "B"], move: ["L", "L", "S"]}
   
-  - {state: q_add_carry0, read: ["B", "B", "B"], next: q_accept, write: ["B", "B", "B"], move: ["R", "S", "S"]}
+  - {state: q_add_carry0, read: ["B", "B", "B"], next: q_accept, write: ["B", "B", "B"], move: ["S", "S", "S"]}
 
   # q_add_carry1: Add bits with carry = 1
   - {state: q_add_carry1, read: ["B", "0", "0"], next: q_add_carry0, write: ["1", "0", "0"], move: ["L", "L", "L"]}
