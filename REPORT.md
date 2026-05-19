@@ -30,11 +30,13 @@ Projede dört farklı Turing Makinesi algoritması geliştirilmiş ve entegre te
 
 Pratikte TuringLab, makinelerin durup durmayacağını bilmediği için basit bir "kısa devre" mekanizması olarak `max_steps` (timeout) kullanır. Bu bir çözüm değil, makinenin simülatörü kilitlemesini engelleyen mühendislik önlemidir. 
 
-## 5. Sınırlar ve İleri Çalışma
-TuringLab şu an oldukça kararlı çalışmasına rağmen tek şeritli bir makinedir. 
-- **Zaman Karmaşıklığı:** Algoritmalar (String Copy vb.) O(N) zamanda çözülebilecekken tek şerit zorunluluğu nedeniyle O(N^2) sürmektedir. Gelecekte Multi-Tape (Çoklu Şerit) desteği eklendiğinde zaman karmaşıklıkları optimize edilebilecektir.
-- **Determinizm Sınırları:** Sadece deterministik geçişlere izin verilmektedir. Nondeterministic Turing Machine (NTM) desteği eklenmesi (bir durumdan ağaç yapısında birden çok yola sapabilme) projenin teorik kapsamını genişletecektir.
-- **Görselleştirme:** Konsol bazlı `verbose` modu kullanışlıdır ancak ileride PyQt veya web tabanlı animasyonlu bir arayüz eklenebilir.
+## 5. Sınırlar ve Ekstra Geliştirmeler (Bonuslar)
+TuringLab şu an oldukça kararlı çalışmasının yanında temel gereksinimlerin ötesine geçerek üç önemli uzantıyı da içermektedir:
+- **Bonus A (Çok-Şeritli TM):** `turinglab/multi_tape.py` modülü ile k-şeritli makineler desteklenmiştir. `binary_add_multi` makinesi kullanılarak iki sayının 3 şerit üzerinden toplanması gerçekleştirilmiştir.
+- **Bonus B ve C (Nondeterministic TM ve Karşılaştırma):** `turinglab/ntm.py` modülü yazılarak BFS tabanlı bir NTM motoru geliştirilmiştir. Ayrıca NTM ile DTM'nin '01' arama problemi üzerindeki zaman ve dal maliyetleri matplotlib grafiği ile karşılaştırılmıştır.
+- **Bonus D (Görselleştirici):** Terminaldeki siyah-beyaz karmaşayı çözmek için Pillow kütüphanesi kullanılarak `turinglab/visualizer.py` geliştirilmiştir. Makinenin her adımı PNG'ye dökülmüş ve animasyonlu bir GIF oluşturulmuştur.
+
+**İleri Çalışma:** Bir hafta daha vaktim olsaydı, NTM'in state uzayını budamak için sezgisel (heuristic) arama algoritmaları ekleyerek hesaplama süresini daha da kısaltmayı denerdim.
 
 ## 6. Kaynakça
 - Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
