@@ -7,7 +7,7 @@ import pytest
 from turinglab import SingleTapeTM
 
 def test_binary_increment_valid():
-    """Test binary increment machine with a valid input."""
+    """Geçerli bir girdi ile binary increment makinesini test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/binary_increment.yaml")
     result = tm.run("1011")
     assert result.accepted is True
@@ -16,52 +16,48 @@ def test_binary_increment_valid():
     assert len(result.history) > 0
 
 def test_unary_increment_valid():
-    """Test unary increment machine with a valid input."""
+    """Geçerli bir girdi ile unary increment makinesini test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/unary_increment.yaml")
     result = tm.run("111")
     assert result.accepted is True
     assert result.final_tape.strip("B") == "1111"
 
 def test_even_a_accepts():
-    """Test even_a machine with an accepted input."""
+    """Kabul edilecek bir girdi ile çift 'a' sayan makineyi (even_a) test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/even_a.yaml")
-    # abab has 2 a's (even)
+    # abab kelimesinde 2 tane 'a' var (çift), o yüzden kabul edilmeli.
     result = tm.run("abab")
     assert result.accepted is True
 
 def test_even_a_rejects():
-    """Test even_a machine with a rejected input."""
+    """Reddedilecek bir girdi ile çift 'a' sayan makineyi (even_a) test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/even_a.yaml")
-    # aba has 2 a's? Wait, a (1) b a (2). Total 2. Oh, let's trace "aba":
-    # q_even(a)->q_odd, q_odd(b)->q_odd, q_odd(a)->q_even. Ends at q_even. Then sees B -> accepts.
-    # So "aba" has 2 'a's, accepted. 
-    # Let's test "baa". b->q_even, a->q_odd, a->q_even. Accepted.
-    # Let's test "baaab". 3 'a's -> rejected.
+    # "baaab" stringinde 3 tane 'a' var -> tek sayı olduğu için reddedilecek (reject).
     result = tm.run("baaab")
     assert result.accepted is False
     assert result.reason == "reject"
 
 def test_timeout_behavior():
-    """Test if max_steps limits the execution properly."""
+    """Makine sonsuz döngüye girerse max_steps'in onu durdurup durdurmadığını test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/unary_increment.yaml")
-    # Hack transitions to create an infinite loop
+    # Sonsuz döngü simüle etmek için geçişleri (transitions) anlık olarak hackliyorum :)
     tm.transitions[("q0", "1")] = ("q0", "1", "L")
-    tm.transitions[("q0", "B")] = ("q0", "B", "R") 
+    tm.transitions[("q0", "B")] = ("q0", "B", "R")
     result = tm.run("11", max_steps=10)
     assert result.accepted is False
     assert result.reason == "timeout"
     assert result.steps == 10
 
 def test_no_transition():
-    """Test behavior when no transition is defined for a symbol."""
+    """Okunan sembol için bir geçiş kuralı yoksa (no_transition) makinenin çökmeden ret verip vermediğini test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/even_a.yaml")
-    # The machine only knows 'a', 'b', 'B'. Sending 'c' will have no transition.
+    # Makine sadece 'a', 'b', 'B' biliyor. 'c' gönderdiğimizde ne yapacağını bilemeyip ret vermeli.
     result = tm.run("c")
     assert result.accepted is False
     assert result.reason == "no_transition"
 
 def test_invalid_yaml(tmp_path):
-    """Test that a missing required key throws ValueError."""
+    """YAML dosyasında eksik/yanlış anahtarlar varsa uygun ValueError fırlatılıp fırlatılmadığını test ediyorum."""
     broken_yaml_path = tmp_path / "broken.yaml"
     broken_yaml_path.write_text("name: broken\nstates: [q0]\n")
     
@@ -69,12 +65,12 @@ def test_invalid_yaml(tmp_path):
         SingleTapeTM.from_yaml(str(broken_yaml_path))
 
 def test_verbose_output(capsys):
-    """Test that verbose output correctly logs the steps."""
+    """Verbose (detaylı) çıktının adımları ve şeridi terminale doğru basıp basmadığını test ediyorum."""
     tm = SingleTapeTM.from_yaml("machines/unary_increment.yaml")
     tm.run("1", verbose=True)
     captured = capsys.readouterr()
     
     assert "Adım 0 | Durum: q0" in captured.out
     assert "Hareket: R" in captured.out
-    # Check if the bracket formatting for head is printed
+    # Kafa pozisyonunun el kitabındaki gibi köşeli parantez [ ] içine alındığından emin oluyorum.
     assert "[" in captured.out and "]" in captured.out

@@ -4,14 +4,14 @@ import yaml
 
 @dataclass
 class StepConfig:
-    """Represents a single step in the Turing Machine's execution history."""
+    """Turing makinesinin çalışma geçmişindeki tek bir adımı tuttuğum yapı."""
     state: str
     tape: str
     head_position: int
 
 @dataclass
 class RunResult:
-    """Encapsulates the result of a Turing Machine run."""
+    """Makinenin çalışması bittiğinde dönecek sonuç objem."""
     accepted: bool
     reason: str
     final_tape: str
@@ -20,8 +20,8 @@ class RunResult:
 
 class Tape:
     """
-    Represents an infinite Turing Machine tape.
-    Uses a dictionary internally to provide an efficient sparse representation.
+    Sonsuz şeridimizi temsil eden sınıfım. 
+    String işlemleri sürekli O(N) maliyet yarattığı için çok daha hızlı çalışması adına alt tarafta sparse dictionary yapısı kullandım.
     """
     def __init__(self, initial_input: str, blank_symbol: str = "B"):
         self.blank_symbol = blank_symbol
@@ -30,18 +30,18 @@ class Tape:
             self._tape[i] = char
 
     def read(self, position: int) -> str:
-        """Reads the symbol at the given head position."""
+        """Kafanın (head) bulunduğu konumdaki sembolü okur."""
         return self._tape.get(position, self.blank_symbol)
 
     def write(self, position: int, symbol: str) -> None:
-        """Writes a symbol to the given head position."""
+        """Kafanın bulunduğu konuma yeni sembolü yazar."""
         self._tape[position] = symbol
 
     def get_tape_string(self, head_position: Optional[int] = None) -> str:
         """
-        Returns string representation of tape. If head_position is provided, 
-        formats with [head] for verbose output.
-        Determines bounds based on written symbols and head_position.
+        Şeridin string halini döndürür. Eğer kafanın konumunu da verirsem, 
+        loglama ekranında (verbose mode) gözüksün diye o harfi [ ] içine alır.
+        (El kitabında istendiği gibi)
         """
         keys = set(self._tape.keys())
         if head_position is not None:
@@ -67,7 +67,7 @@ class Tape:
 
 class SingleTapeTM:
     """
-    Deterministic single-tape Turing Machine engine.
+    Deterministik tek şeritli (single-tape) Turing Makinesi motorum.
     """
     def __init__(self, config: Dict[str, Any]):
         self.name: str = config.get("name", "Untitled TM")
@@ -80,22 +80,22 @@ class SingleTapeTM:
         self.accept_states: Set[str] = set(config.get("accept_states", []))
         self.reject_states: Set[str] = set(config.get("reject_states", []))
         
-        # Dictionary for O(1) transition lookup: (state, read_symbol) -> (next_state, write_symbol, move_dir)
+        # Geçişleri O(1) hızında bulabilmek için tuple tabanlı bir lookup sözlüğü kurdum: (durum, okunan_harf) -> (yeni_durum, yazılacak_harf, yön)
         self.transitions: Dict[Tuple[str, str], Tuple[str, str, str]] = {}
         self._parse_transitions(config.get("transitions", []))
 
     def _parse_transitions(self, transitions_list: List[Dict[str, str]]) -> None:
-        """Parses YAML transitions into a more efficient lookup dictionary."""
+        """YAML'dan okuduğum geçiş listesini benim lookup dictionary yapıma dönüştürür."""
         for t in transitions_list:
-            # Keys are state and read symbol
+            # Anahtarlar: mevcut durum ve okunan sembol
             key = (t["state"], str(t["read"]))
-            # Values are next state, write symbol, and move direction (L, R)
+            # Değerler: gidilecek durum, yazılacak sembol ve hareket yönü (L veya R)
             value = (t["next"], str(t["write"]), t["move"])
             self.transitions[key] = value
 
     @classmethod
     def from_yaml(cls, filepath: str) -> "SingleTapeTM":
-        """Loads a Turing Machine configuration from a YAML file."""
+        """Dışarıda tasarladığım YAML dosyalarını okuyup TM objesini ayağa kaldırır."""
         with open(filepath, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
             
@@ -107,7 +107,7 @@ class SingleTapeTM:
         return cls(config)
 
     def run(self, input_string: str, max_steps: int = 1000, verbose: bool = False) -> RunResult:
-        """Runs the Turing Machine on the given input string."""
+        """Makineyi verilen girdi stringiyle başlatır ve bitene kadar çalıştırır."""
         tape = Tape(input_string, self.blank)
         current_state = self.start_state
         head_position = 0
@@ -115,7 +115,7 @@ class SingleTapeTM:
         steps = 0
         
         while steps <= max_steps:
-            # Record current configuration
+            # Şu anki şerit durumunu kaydet (geçmişi tutmak için)
             current_tape_str_clean = tape.get_tape_string()
             current_tape_str_with_head = tape.get_tape_string(head_position)
             
@@ -125,7 +125,7 @@ class SingleTapeTM:
                 head_position=head_position
             ))
             
-            # Check for accept/reject state before reading transition
+            # Hamle yapmadan önce kabul veya ret durumuna geldik mi diye kontrol etmemiz lazım
             if current_state in self.accept_states:
                 if verbose:
                     print(f"Adım {steps} | Durum: {current_state} | Şerit: {current_tape_str_with_head} | Hareket: -")
@@ -149,7 +149,7 @@ class SingleTapeTM:
             if verbose:
                 print(f"Adım {steps} | Durum: {current_state} | Şerit: {current_tape_str_with_head} | Hareket: {move_dir}")
                 
-            # Apply transition
+            # Geçiş kurallarını uygula (yaz, state değiştir, kafa hareket etsin)
             tape.write(head_position, write_symbol)
             current_state = next_state
             
