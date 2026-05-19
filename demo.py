@@ -60,7 +60,7 @@ def main():
     result = tm.run(input_str, max_steps=10000, verbose=verbose)
 
     print_header("Simülasyon Sonucu")
-    print(f"Başarı Durumu: {'KABUL (ACCEPT) ✅' if result.accepted else 'RET (REJECT) ❌'}")
+    print(f"Başarı Durumu: {'KABUL (ACCEPT)' if result.accepted else 'RET (REJECT)'}")
     print(f"Adım Sayısı:   {result.steps}")
     print(f"Son Şerit:     {result.final_tape}")
     
