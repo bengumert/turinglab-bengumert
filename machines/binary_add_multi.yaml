@@ -1,0 +1,50 @@
+name: "binary_add_multi"
+description: "3-şeritli TM ile ikili sayı toplama. (Örn: 101#110 -> 1011). Tape 0'da A#B verilir, Tape 0'a sonuç yazılır."
+num_tapes: 3
+states: [
+  q_copy1, q_copy2,
+  q_add_carry0, q_add_carry1,
+  q_accept
+]
+input_alphabet: ["0", "1", "#"]
+tape_alphabet: ["0", "1", "#", "B"]
+blank: "B"
+start_state: q_copy1
+accept_states: [q_accept]
+reject_states: []
+transitions:
+  # q_copy1: Copy A to Tape 1, erase Tape 0
+  - {state: q_copy1, read: ["0", "B", "B"], next: q_copy1, write: ["B", "0", "B"], move: ["R", "R", "S"]}
+  - {state: q_copy1, read: ["1", "B", "B"], next: q_copy1, write: ["B", "1", "B"], move: ["R", "R", "S"]}
+  - {state: q_copy1, read: ["#", "B", "B"], next: q_copy2, write: ["B", "B", "B"], move: ["R", "S", "S"]}
+
+  # q_copy2: Copy B to Tape 2, erase Tape 0
+  - {state: q_copy2, read: ["0", "B", "B"], next: q_copy2, write: ["B", "B", "0"], move: ["R", "S", "R"]}
+  - {state: q_copy2, read: ["1", "B", "B"], next: q_copy2, write: ["B", "B", "1"], move: ["R", "S", "R"]}
+  - {state: q_copy2, read: ["B", "B", "B"], next: q_add_carry0, write: ["B", "B", "B"], move: ["L", "L", "L"]}
+
+  # q_add_carry0: Add bits with carry = 0
+  - {state: q_add_carry0, read: ["B", "0", "0"], next: q_add_carry0, write: ["0", "0", "0"], move: ["L", "L", "L"]}
+  - {state: q_add_carry0, read: ["B", "0", "1"], next: q_add_carry0, write: ["1", "0", "1"], move: ["L", "L", "L"]}
+  - {state: q_add_carry0, read: ["B", "1", "0"], next: q_add_carry0, write: ["1", "1", "0"], move: ["L", "L", "L"]}
+  - {state: q_add_carry0, read: ["B", "1", "1"], next: q_add_carry1, write: ["0", "1", "1"], move: ["L", "L", "L"]}
+
+  - {state: q_add_carry0, read: ["B", "B", "0"], next: q_add_carry0, write: ["0", "B", "0"], move: ["L", "S", "L"]}
+  - {state: q_add_carry0, read: ["B", "B", "1"], next: q_add_carry0, write: ["1", "B", "1"], move: ["L", "S", "L"]}
+  - {state: q_add_carry0, read: ["B", "0", "B"], next: q_add_carry0, write: ["0", "0", "B"], move: ["L", "L", "S"]}
+  - {state: q_add_carry0, read: ["B", "1", "B"], next: q_add_carry0, write: ["1", "1", "B"], move: ["L", "L", "S"]}
+  
+  - {state: q_add_carry0, read: ["B", "B", "B"], next: q_accept, write: ["B", "B", "B"], move: ["R", "S", "S"]}
+
+  # q_add_carry1: Add bits with carry = 1
+  - {state: q_add_carry1, read: ["B", "0", "0"], next: q_add_carry0, write: ["1", "0", "0"], move: ["L", "L", "L"]}
+  - {state: q_add_carry1, read: ["B", "0", "1"], next: q_add_carry1, write: ["0", "0", "1"], move: ["L", "L", "L"]}
+  - {state: q_add_carry1, read: ["B", "1", "0"], next: q_add_carry1, write: ["0", "1", "0"], move: ["L", "L", "L"]}
+  - {state: q_add_carry1, read: ["B", "1", "1"], next: q_add_carry1, write: ["1", "1", "1"], move: ["L", "L", "L"]}
+
+  - {state: q_add_carry1, read: ["B", "B", "0"], next: q_add_carry0, write: ["1", "B", "0"], move: ["L", "S", "L"]}
+  - {state: q_add_carry1, read: ["B", "B", "1"], next: q_add_carry1, write: ["0", "B", "1"], move: ["L", "S", "L"]}
+  - {state: q_add_carry1, read: ["B", "0", "B"], next: q_add_carry0, write: ["1", "0", "B"], move: ["L", "L", "S"]}
+  - {state: q_add_carry1, read: ["B", "1", "B"], next: q_add_carry1, write: ["0", "1", "B"], move: ["L", "L", "S"]}
+  
+  - {state: q_add_carry1, read: ["B", "B", "B"], next: q_accept, write: ["1", "B", "B"], move: ["S", "S", "S"]}
