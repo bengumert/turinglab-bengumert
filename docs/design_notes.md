@@ -57,7 +57,7 @@ N uzunluğunda bir string için, her bir karakterin kopyalanması şeridin sonun
 Bu makinenin tasarımı en sorunsuz geçen aşamalardan biriydi. Sadece boş string ("") girdisinde nasıl davranacağı kafa karıştırıcı olabilirdi; q_start durumunda şerit boşsa doğrudan sola '#' yazıp temizleme işlemine geçerek çıktının başarılı bir şekilde '#' olmasını sağladım.
 
 
-## TM-4: Öğrenci Seçimi - Palindrome Checker (palindrome_checker.yaml)
+## TM-4: Öğrenci Seçimi - Palindrome Checker (student_choice.yaml)
 
 **1. Strateji:**  
 Makine, şeridin sol ucundaki karakteri okur, hafızasında tutar (bunun için iki farklı yola sapar: q_find_end_a veya q_find_end_b) ve sildiği yerin üzerine boşluk (B) yazar. Ardından şeridin sağ ucuna kadar gider. Uçtaki karakteri siler ve başta okuduğu karakterle aynı olup olmadığını kontrol eder. Aynıysa sola doğru başlangıca döner ve işlemi tekrarlar. Ortada hiç karakter kalmazsa (çift uzunluk) veya sadece bir karakter kalırsa (tek uzunluk) kabul (accept) durumuna geçer.

@@ -107,8 +107,8 @@ def test_string_copy():
     assert res.accepted is True
     assert res.final_tape.strip("B") == "#"
 
-def test_palindrome_checker():
-    tm = SingleTapeTM.from_yaml("machines/palindrome_checker.yaml")
+def test_student_choice_palindrome():
+    tm = SingleTapeTM.from_yaml("machines/student_choice.yaml")
     
     # 1. Çift uzunluklu (Even) palindrom
     res = tm.run("abba")
