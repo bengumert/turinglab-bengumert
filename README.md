@@ -1,6 +1,6 @@
 # TuringLab
 
-**Öğrenci:** Emine Bengü Mert  
+**Öğrenci:** Bengü Mert  
 **Ders:** Otomata Teorisi ve Biçimsel Diller · Bilgisayar Mühendisliği  
 **Üniversite:** Selçuk Üniversitesi  
 
